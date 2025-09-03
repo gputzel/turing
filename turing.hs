@@ -1,3 +1,6 @@
+halfWidth :: Int
+halfWidth = 20
+
 data TapeSymbol = Dash | Blank
     deriving (Eq)
 
@@ -27,9 +30,9 @@ type TapeState = ([TapeSymbol],TapeSymbol,[TapeSymbol])
 showTape :: TapeState -> String
 showTape (leftTape,s,rightTape) = leftString ++ middleChar ++ rightString
     where
-        leftString = concatMap show $ reverse $ take 20 leftTape
+        leftString = concatMap show $ reverse $ take halfWidth leftTape
         middleChar = show s
-        rightString = concatMap show $ take 20 rightTape
+        rightString = concatMap show $ take halfWidth rightTape
 
 -- we will need infinite numbers of blanks on either side
 allBlanks :: [TapeSymbol]
@@ -48,8 +51,8 @@ instance Show MachineState where
         where
             headStateName = show hs
             headRow = spaces ++ "V[" ++ headStateName ++ "]" ++ rightSpaces
-            spaces = concat $ take 20 $ repeat " "
-            rightSpaces = concat $ take (20 - 2 - (length headStateName)) $ repeat " "
+            spaces = concat $ take halfWidth $ repeat " "
+            rightSpaces = concat $ take (halfWidth - 2 - (length headStateName)) $ repeat " "
             tapeRow = showTape ts
 
 readSymbol :: TapeState -> TapeSymbol
@@ -71,8 +74,13 @@ doStep transRule (MachineState tapeState headState) =
         newTapeState = applyMove headMove $ writeSymbol newSymbol tapeState
     in MachineState newTapeState newHeadState
 
+exampleRule :: TransitionRule
+exampleRule (Blank,HeadState "state1") = (Blank,JumpRight,HeadState "state1")
+exampleRule (Dash,HeadState "state1") = (Dash,JumpLeft,HeadState "state1")
+
 main :: IO ()
 main = do
     let tState = (allBlanks,Dash,allBlanks)
     let mState = MachineState{tapeState = tState,headState=HeadState "state1"}
     putStrLn $ show mState
+    putStrLn $ show $ doStep exampleRule mState
