@@ -1,3 +1,11 @@
+--Some ideas
+--Optionally, view the tape as fixed so that the head moves back and forth
+
+import Text.Parsec
+import Text.Parsec.String (Parser)
+import Text.Parsec.Char
+import Text.Parsec.Combinator
+
 halfWidth :: Int
 halfWidth = 20
 
@@ -74,6 +82,21 @@ doStep transRule (MachineState tapeState headState) =
         newTapeState = applyMove headMove $ writeSymbol newSymbol tapeState
     in MachineState newTapeState newHeadState
 
+tapeSymbol :: Parser TapeSymbol
+tapeSymbol = choice
+    [ char '-' >> return Dash
+    , char '.' >> return Blank
+    ]
+
+tapeStateParser :: Parser TapeState
+tapeStateParser = do
+    leftLine <- many tapeSymbol
+    char '\n'
+    currentSym <- tapeSymbol
+    char '\n'
+    rightLine <- many tapeSymbol
+    return ((reverse leftLine) ++ allBlanks,currentSym,rightLine ++ allBlanks)
+
 exampleRule :: TransitionRule
 exampleRule (Blank,HeadState "state1") = (Blank,JumpRight,HeadState "state1")
 exampleRule (Dash,HeadState "state1") = (Dash,JumpLeft,HeadState "state1")
@@ -82,5 +105,11 @@ main :: IO ()
 main = do
     let tState = (allBlanks,Dash,allBlanks)
     let mState = MachineState{tapeState = tState,headState=HeadState "state1"}
-    putStrLn $ show mState
-    putStrLn $ show $ doStep exampleRule mState
+    --putStrLn $ show mState
+    --putStrLn $ show $ doStep exampleRule mState
+    let msl = iterate (doStep exampleRule) mState
+    --mapM_ putStrLn $ map show (take 5 msl)
+    let input = "--.\n-\n--..000"
+    case parse tapeStateParser "" input of
+        Left err -> print err
+        Right result -> print $ MachineState{tapeState=result,headState=HeadState "state1"}
