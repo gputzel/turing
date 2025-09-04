@@ -2,9 +2,12 @@
 --Optionally, view the tape as fixed so that the head moves back and forth
 
 import Text.Parsec
-import Text.Parsec.String (Parser)
+import Text.Parsec.String 
 import Text.Parsec.Char
 import Text.Parsec.Combinator
+import Options.Applicative
+import System.IO.Error (tryIOError)
+import System.Exit (exitFailure)
 
 halfWidth :: Int
 halfWidth = 20
@@ -109,7 +112,8 @@ main = do
     --putStrLn $ show $ doStep exampleRule mState
     let msl = iterate (doStep exampleRule) mState
     --mapM_ putStrLn $ map show (take 5 msl)
-    let input = "--.\n-\n--..000"
+    --let input = "--.\n-\n--..000"
+    input <- readFile "examples/tapestates/example.tapestate"
     case parse tapeStateParser "" input of
         Left err -> print err
         Right result -> print $ MachineState{tapeState=result,headState=HeadState "state1"}
