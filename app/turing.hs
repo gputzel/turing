@@ -1,11 +1,12 @@
 --Some ideas
 --Optionally, view the tape as fixed so that the head moves back and forth
 
-import Text.Parsec
-import Text.Parsec.String 
-import Text.Parsec.Char
-import Text.Parsec.Combinator
-import Options.Applicative
+import Text.Parsec hiding ((<|>))
+import Text.Parsec.String (Parser)
+--import Text.Parsec.Char
+--import Text.Parsec.Combinator
+import qualified Options.Applicative as Opt
+import Options.Applicative ((<**>))
 import System.IO.Error (tryIOError)
 import System.Exit (exitFailure)
 
@@ -104,16 +105,38 @@ exampleRule :: TransitionRule
 exampleRule (Blank,HeadState "state1") = (Blank,JumpRight,HeadState "state1")
 exampleRule (Dash,HeadState "state1") = (Dash,JumpLeft,HeadState "state1")
 
+data Options = Options
+    { optTapeStateFile :: String
+    } deriving (Show)
+
+options :: Opt.Parser Options
+options = Options
+    <$> Opt.strOption
+        ( Opt.long "tapeState"
+       <> Opt.metavar "FILENAME"
+       <> Opt.help "File containing the tape state" )
+
+opts :: Opt.ParserInfo Options
+opts = Opt.info (options <**> Opt.helper)
+    ( Opt.fullDesc
+   <> Opt.progDesc "Parse a Turing machine tape state"
+   <> Opt.header "tape-parser - a Turing machine tape state parser" )
+
 main :: IO ()
 main = do
-    let tState = (allBlanks,Dash,allBlanks)
-    let mState = MachineState{tapeState = tState,headState=HeadState "state1"}
-    --putStrLn $ show mState
-    --putStrLn $ show $ doStep exampleRule mState
-    let msl = iterate (doStep exampleRule) mState
-    --mapM_ putStrLn $ map show (take 5 msl)
-    --let input = "--.\n-\n--..000"
-    input <- readFile "examples/tapestates/example.tapestate"
-    case parse tapeStateParser "" input of
-        Left err -> print err
-        Right result -> print $ MachineState{tapeState=result,headState=HeadState "state1"}
+    Options { optTapeStateFile = tapeStateFile } <- Opt.execParser opts
+    
+    result <- tryIOError $ readFile tapeStateFile
+    case result of
+        Left ioErr -> do
+            putStrLn $ "Error reading file: " ++ show ioErr
+            exitFailure
+        Right content -> 
+            case parse tapeStateParser tapeStateFile content of
+                Left parseErr -> do
+                    putStrLn $ "Parse error: " ++ show parseErr
+                    exitFailure
+                --Right tapeStateResult -> print $ MachineState{tapeState = tapeStateResult,headState=HeadState "state1"}
+                Right tapeStateResult -> mapM_ putStrLn $ map show (take 5 msl) where
+                    msl = iterate (doStep exampleRule) mState
+                    mState = MachineState{tapeState = tapeStateResult,headState=HeadState "state1"}
