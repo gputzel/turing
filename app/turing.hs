@@ -10,8 +10,9 @@ import Options.Applicative ((<**>))
 import System.IO.Error (tryIOError)
 import System.Exit (exitFailure)
 
-halfWidth :: Int
-halfWidth = 20
+--import System.Environment (lookupEnv)
+import System.Process
+import Text.Read (readMaybe)
 
 data TapeSymbol = Dash | Blank
     deriving (Eq)
@@ -39,8 +40,8 @@ type TransitionRule = (TapeSymbol, HeadState) -> (TapeSymbol, HeadMove, HeadStat
 -- and everything to the right of the head
 type TapeState = ([TapeSymbol],TapeSymbol,[TapeSymbol])
 
-showTape :: TapeState -> String
-showTape (leftTape,s,rightTape) = leftString ++ middleChar ++ rightString
+showTape :: Int -> TapeState -> String
+showTape halfWidth (leftTape,s,rightTape) = leftString ++ middleChar ++ rightString
     where
         leftString = concatMap show $ reverse $ take halfWidth leftTape
         middleChar = show s
@@ -58,14 +59,38 @@ data MachineState = MachineState
     , headState :: HeadState 
     }
 
-instance Show MachineState where
-    show MachineState {tapeState=ts, headState=hs} = headRow ++ "\n" ++ tapeRow
-        where
-            headStateName = show hs
-            headRow = spaces ++ "V[" ++ headStateName ++ "]" ++ rightSpaces
-            spaces = concat $ take halfWidth $ repeat " "
-            rightSpaces = concat $ take (halfWidth - 2 - (length headStateName)) $ repeat " "
-            tapeRow = showTape ts
+--instance Show MachineState where
+--    show MachineState {tapeState=ts, headState=hs} = headRow ++ "\n" ++ tapeRow
+--        where
+--            headStateName = show hs
+--            headRow = spaces ++ "V[" ++ headStateName ++ "]" ++ rightSpaces
+--            spaces = concat $ take halfWidth $ repeat " "
+--            rightSpaces = concat $ take (halfWidth - 2 - (length headStateName)) $ repeat " "
+--            tapeRow = showTape ts
+
+showMachine :: Int -> MachineState -> String
+showMachine consoleWidth MachineState {tapeState=ts, headState=hs} = headRow ++ "\n" ++ tapeRow
+    where
+        headStateName = show hs
+        halfWidth = (consoleWidth - (if odd consoleWidth then 1 else 2)) `div` 2
+        spaces = concat $ take halfWidth $ repeat " "
+        rightSpaces = concat $ take (halfWidth - 2 - (length headStateName)) $ repeat " "
+        headRow = spaces ++ "V[" ++ headStateName ++ "]" ++ rightSpaces
+        tapeRow = showTape halfWidth ts
+
+getColumnNumber :: IO Int
+getColumnNumber = do
+    result <- readProcess "tput" ["cols"] ""
+    return $ case readMaybe (strip result) of
+        Just n -> n
+        Nothing -> 80
+    where
+        strip = reverse . dropWhile (== '\n') . reverse
+
+displayMachine :: MachineState -> IO ()
+displayMachine ms = do
+    size <- getColumnNumber
+    putStrLn $ showMachine size ms
 
 readSymbol :: TapeState -> TapeSymbol
 readSymbol (leftTape,s,rightTape) = s
@@ -136,7 +161,6 @@ main = do
                 Left parseErr -> do
                     putStrLn $ "Parse error: " ++ show parseErr
                     exitFailure
-                --Right tapeStateResult -> print $ MachineState{tapeState = tapeStateResult,headState=HeadState "state1"}
-                Right tapeStateResult -> mapM_ putStrLn $ map show (take 5 msl) where
+                Right tapeStateResult -> mapM_ displayMachine $ (take 5 msl) where
                     msl = iterate (doStep exampleRule) mState
                     mState = MachineState{tapeState = tapeStateResult,headState=HeadState "state1"}
