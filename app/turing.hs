@@ -87,11 +87,6 @@ getColumnNumber = do
     where
         strip = reverse . dropWhile (== '\n') . reverse
 
-displayMachine :: MachineState -> IO ()
-displayMachine ms = do
-    size <- getColumnNumber
-    putStrLn $ showMachine size ms
-
 readSymbol :: TapeState -> TapeSymbol
 readSymbol (leftTape,s,rightTape) = s
 
@@ -150,7 +145,9 @@ opts = Opt.info (options <**> Opt.helper)
 main :: IO ()
 main = do
     Options { optTapeStateFile = tapeStateFile } <- Opt.execParser opts
-    
+   
+    nCols <- getColumnNumber
+ 
     result <- tryIOError $ readFile tapeStateFile
     case result of
         Left ioErr -> do
@@ -161,6 +158,7 @@ main = do
                 Left parseErr -> do
                     putStrLn $ "Parse error: " ++ show parseErr
                     exitFailure
-                Right tapeStateResult -> mapM_ displayMachine $ (take 5 msl) where
+                Right tapeStateResult -> mapM_ putStrLn lines where
+                    lines = map (showMachine nCols) $ take 5 msl
                     msl = iterate (doStep exampleRule) mState
                     mState = MachineState{tapeState = tapeStateResult,headState=HeadState "state1"}
