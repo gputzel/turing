@@ -157,13 +157,14 @@ mapToTransitionRule ruleMap = \key -> case Map.lookup key ruleMap of
     Just result -> result
     Nothing -> error $ "No transition rule found for: " ++ show key
 
-exampleRule :: TransitionRule
-exampleRule (Blank,HeadState "state1") = (Blank,JumpRight,HeadState "state1")
-exampleRule (Dash,HeadState "state1") = (Dash,JumpLeft,HeadState "state1")
+--exampleRule :: TransitionRule
+--exampleRule (Blank,HeadState "state1") = (Blank,JumpRight,HeadState "state1")
+--exampleRule (Dash,HeadState "state1") = (Dash,JumpLeft,HeadState "state1")
 
 data Options = Options
     { optTapeStateFile :: String
      ,optTransRuleFile :: String
+     ,optInitialHeadState :: String
     } deriving (Show)
 
 options :: Opt.Parser Options
@@ -176,6 +177,10 @@ options = Options
         ( Opt.long "transitionRules"
         <> Opt.metavar "FILENAME"
         <> Opt.help "File containing the transition rules")
+    <*> Opt.strOption
+        ( Opt.long "initialState"
+        <> Opt.metavar "STATE"
+        <> Opt.help "Initial state of Turing machine head")
 
 opts :: Opt.ParserInfo Options
 opts = Opt.info (options <**> Opt.helper)
@@ -185,7 +190,7 @@ opts = Opt.info (options <**> Opt.helper)
 
 main :: IO ()
 main = do
-    Options { optTapeStateFile = tapeStateFile, optTransRuleFile = transRuleFile } <- Opt.execParser opts
+    Options { optTapeStateFile = tapeStateFile, optTransRuleFile = transRuleFile, optInitialHeadState = initialState } <- Opt.execParser opts
    
     nCols <- getColumnNumber
 
@@ -212,6 +217,6 @@ main = do
                     putStrLn $ "Parse error: " ++ show parseErr
                     exitFailure
                 Right tapeStateResult -> mapM_ putStrLn lines where
-                    lines = map (showMachine nCols) $ take 100 msl
+                    lines = map (showMachine nCols) $ take 10000 msl
                     msl = iterate (doStep transFunc) mState
-                    mState = MachineState{tapeState = tapeStateResult,headState=HeadState "state1"}
+                    mState = MachineState{tapeState = tapeStateResult,headState=HeadState initialState}
