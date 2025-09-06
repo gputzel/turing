@@ -1,7 +1,10 @@
 --Some ideas
 --Optionally, view the tape as fixed so that the head moves back and forth
 
-import Text.Parsec hiding ((<|>))
+import qualified Data.Map as Map
+import Data.Map (Map)
+
+import Text.Parsec
 import Text.Parsec.String (Parser)
 --import Text.Parsec.Char
 --import Text.Parsec.Combinator
@@ -15,14 +18,14 @@ import System.Process
 import Text.Read (readMaybe)
 
 data TapeSymbol = Dash | Blank
-    deriving (Eq)
+    deriving (Eq,Ord)
 
 instance Show TapeSymbol where
     show Dash = "-"
     show Blank = "."
 
 newtype HeadState = HeadState String
-    deriving (Eq)
+    deriving (Eq,Ord)
 
 instance Show HeadState where
     show (HeadState str) = str
@@ -34,6 +37,7 @@ data HeadMove = JumpLeft | JumpRight | Stay
 -- This will specify the symbol to be written, the move to be made on the tape,
 -- and the next head state
 type TransitionRule = (TapeSymbol, HeadState) -> (TapeSymbol, HeadMove, HeadState)
+type TransitionMap = Map (TapeSymbol, HeadState) (TapeSymbol, HeadMove, HeadState)
 
 -- The tape itself is two linked lists, representing
 -- everything to the left of the head
@@ -58,15 +62,6 @@ data MachineState = MachineState
     { tapeState :: TapeState
     , headState :: HeadState 
     }
-
---instance Show MachineState where
---    show MachineState {tapeState=ts, headState=hs} = headRow ++ "\n" ++ tapeRow
---        where
---            headStateName = show hs
---            headRow = spaces ++ "V[" ++ headStateName ++ "]" ++ rightSpaces
---            spaces = concat $ take halfWidth $ repeat " "
---            rightSpaces = concat $ take (halfWidth - 2 - (length headStateName)) $ repeat " "
---            tapeRow = showTape ts
 
 showMachine :: Int -> MachineState -> String
 showMachine consoleWidth MachineState {tapeState=ts, headState=hs} = headRow ++ "\n" ++ tapeRow
@@ -121,12 +116,54 @@ tapeStateParser = do
     rightLine <- many tapeSymbol
     return ((reverse leftLine) ++ allBlanks,currentSym,rightLine ++ allBlanks)
 
+headStateParser :: Parser HeadState
+headStateParser = HeadState <$> many1 (alphaNum <|> char '_')
+
+headMoveParser :: Parser HeadMove
+headMoveParser = choice
+    [ try (string "JumpRight") >> return JumpRight
+    , try (string "JumpLeft") >> return JumpLeft  
+    , try (string "Stay") >> return Stay
+    ]
+
+transitionRuleParser :: Parser ((TapeSymbol, HeadState), (TapeSymbol, HeadMove, HeadState))
+transitionRuleParser = do
+    inputSymbol <- tapeSymbol
+    spaces
+    inputState <- headStateParser
+    spaces
+    string "->"
+    spaces
+    outputSymbol <- tapeSymbol
+    spaces
+    outputMove <- headMoveParser
+    spaces
+    outputState <- headStateParser
+    return ((inputSymbol,inputState),(outputSymbol,outputMove,outputState))
+
+transitionMapParser :: Parser TransitionMap
+transitionMapParser = do
+    rules <- sepEndBy transitionRuleParser (char '\n' >> spaces)
+    return $ Map.fromList rules
+
+parseTransitionRule :: String -> Either ParseError ((TapeSymbol, HeadState), (TapeSymbol, HeadMove, HeadState))
+parseTransitionRule = parse transitionRuleParser ""
+
+parseTransitionRules :: String -> String -> Either ParseError TransitionMap
+parseTransitionRules filename content = parse transitionMapParser filename content
+
+mapToTransitionRule :: TransitionMap -> TransitionRule
+mapToTransitionRule ruleMap = \key -> case Map.lookup key ruleMap of
+    Just result -> result
+    Nothing -> error $ "No transition rule found for: " ++ show key
+
 exampleRule :: TransitionRule
 exampleRule (Blank,HeadState "state1") = (Blank,JumpRight,HeadState "state1")
 exampleRule (Dash,HeadState "state1") = (Dash,JumpLeft,HeadState "state1")
 
 data Options = Options
     { optTapeStateFile :: String
+     ,optTransRuleFile :: String
     } deriving (Show)
 
 options :: Opt.Parser Options
@@ -135,6 +172,10 @@ options = Options
         ( Opt.long "tapeState"
        <> Opt.metavar "FILENAME"
        <> Opt.help "File containing the tape state" )
+    <*> Opt.strOption
+        ( Opt.long "transitionRules"
+        <> Opt.metavar "FILENAME"
+        <> Opt.help "File containing the transition rules")
 
 opts :: Opt.ParserInfo Options
 opts = Opt.info (options <**> Opt.helper)
@@ -144,10 +185,22 @@ opts = Opt.info (options <**> Opt.helper)
 
 main :: IO ()
 main = do
-    Options { optTapeStateFile = tapeStateFile } <- Opt.execParser opts
+    Options { optTapeStateFile = tapeStateFile, optTransRuleFile = transRuleFile } <- Opt.execParser opts
    
     nCols <- getColumnNumber
- 
+
+    transRuleResult <- tryIOError $ readFile transRuleFile
+    transFunc <- case transRuleResult of
+        Left ioErr -> do
+            putStrLn $ "Error reading transition rules file: " ++ show ioErr
+            exitFailure
+        Right transRuleContent ->
+            case parseTransitionRules transRuleFile transRuleContent of
+                Left err -> do
+                    putStrLn $ "Parse error in transition rules: " ++ show err
+                    exitFailure
+                Right ruleMap -> return $ mapToTransitionRule ruleMap
+
     result <- tryIOError $ readFile tapeStateFile
     case result of
         Left ioErr -> do
@@ -159,6 +212,6 @@ main = do
                     putStrLn $ "Parse error: " ++ show parseErr
                     exitFailure
                 Right tapeStateResult -> mapM_ putStrLn lines where
-                    lines = map (showMachine nCols) $ take 5 msl
-                    msl = iterate (doStep exampleRule) mState
+                    lines = map (showMachine nCols) $ take 100 msl
+                    msl = iterate (doStep transFunc) mState
                     mState = MachineState{tapeState = tapeStateResult,headState=HeadState "state1"}
