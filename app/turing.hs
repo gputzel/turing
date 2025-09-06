@@ -17,6 +17,8 @@ import System.Exit (exitFailure)
 import System.Process
 import Text.Read (readMaybe)
 
+import Control.Concurrent (threadDelay)
+
 data TapeSymbol = Dash | Blank
     deriving (Eq,Ord)
 
@@ -216,7 +218,10 @@ main = do
                 Left parseErr -> do
                     putStrLn $ "Parse error: " ++ show parseErr
                     exitFailure
-                Right tapeStateResult -> mapM_ putStrLn lines where
-                    lines = map (showMachine nCols) $ take 10000 msl
+                Right tapeStateResult -> mapM_ printWithDelay lines where
+                    lines = map (showMachine nCols) $ msl
                     msl = iterate (doStep transFunc) mState
                     mState = MachineState{tapeState = tapeStateResult,headState=HeadState initialState}
+                    printWithDelay line = do
+                        putStrLn line
+                        threadDelay 2000
