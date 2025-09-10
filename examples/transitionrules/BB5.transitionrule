@@ -1,0 +1,10 @@
+. A -> - JumpRight B
+. B -> - JumpRight C
+. C -> - JumpRight D
+. D -> - JumpLeft A
+. E -> - JumpRight Halt
+- A -> - JumpLeft C
+- B -> - JumpRight B
+- C -> . JumpLeft E
+- D -> - JumpLeft D
+- E -> . JumpLeft A

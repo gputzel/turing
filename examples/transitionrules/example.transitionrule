@@ -1,0 +1,2 @@
+. state1 -> . JumpRight state1
+- state1 -> - JumpLeft state1
