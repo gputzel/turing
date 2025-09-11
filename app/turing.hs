@@ -3,6 +3,7 @@
 
 import qualified Data.Map as Map
 import Data.Map (Map)
+import Data.Char (toLower)
 
 import Text.Parsec
 import Text.Parsec.String (Parser)
@@ -26,7 +27,7 @@ instance Show TapeSymbol where
     show Dash = "-"
     show Blank = "."
 
-newtype HeadState = HeadState String
+data HeadState = Halt | HeadState String
     deriving (Eq,Ord)
 
 instance Show HeadState where
@@ -103,6 +104,15 @@ doStep transRule (MachineState tapeState headState) =
         newTapeState = applyMove headMove $ writeSymbol newSymbol tapeState
     in MachineState newTapeState newHeadState
 
+countStepsWithPrint :: Int -> TransitionRule -> (MachineState,Int) -> IO (MachineState,Int)
+countStepsWithPrint _ _ ((MachineState tState Halt),n) = return ((MachineState tState Halt),n)
+countStepsWithPrint consoleWidth tRule (mState,n) = do
+    putStrLn $ showMachine consoleWidth mState
+    threadDelay 2000
+    countStepsWithPrint consoleWidth tRule (nextState,n+1) where
+        nextState = doStep tRule mState
+
+
 tapeSymbol :: Parser TapeSymbol
 tapeSymbol = choice
     [ char '-' >> return Dash
@@ -119,7 +129,9 @@ tapeStateParser = do
     return ((reverse leftLine) ++ allBlanks,currentSym,rightLine ++ allBlanks)
 
 headStateParser :: Parser HeadState
-headStateParser = HeadState <$> many1 (alphaNum <|> char '_')
+headStateParser = do
+    str <- many1 (alphaNum <|> char '_')
+    return $ if map toLower str == "halt" then Halt else HeadState str
 
 headMoveParser :: Parser HeadMove
 headMoveParser = choice
@@ -193,9 +205,11 @@ opts = Opt.info (options <**> Opt.helper)
 main :: IO ()
 main = do
     Options { optTapeStateFile = tapeStateFile, optTransRuleFile = transRuleFile, optInitialHeadState = initialState } <- Opt.execParser opts
-   
+  
+    --Find out column numbers 
     nCols <- getColumnNumber
 
+    --Read in transition rule
     transRuleResult <- tryIOError $ readFile transRuleFile
     transFunc <- case transRuleResult of
         Left ioErr -> do
@@ -208,20 +222,19 @@ main = do
                     exitFailure
                 Right ruleMap -> return $ mapToTransitionRule ruleMap
 
+    --Read in tape state
     result <- tryIOError $ readFile tapeStateFile
-    case result of
+    tapeStateResult <- case result of
         Left ioErr -> do
             putStrLn $ "Error reading file: " ++ show ioErr
             exitFailure
-        Right content -> 
-            case parse tapeStateParser tapeStateFile content of
+        Right tapeStateContent -> 
+            case parse tapeStateParser tapeStateFile tapeStateContent of
                 Left parseErr -> do
                     putStrLn $ "Parse error: " ++ show parseErr
                     exitFailure
-                Right tapeStateResult -> mapM_ printWithDelay lines where
-                    lines = map (showMachine nCols) $ msl
-                    msl = iterate (doStep transFunc) mState
-                    mState = MachineState{tapeState = tapeStateResult,headState=HeadState initialState}
-                    printWithDelay line = do
-                        putStrLn line
-                        threadDelay 2000
+                Right tapeStateResult -> return tapeStateResult
+    --Run it
+    let mState = MachineState{tapeState = tapeStateResult,headState=HeadState initialState}
+    (finalState,nSteps) <- countStepsWithPrint nCols transFunc (mState, 0)
+    putStrLn $ "Finished in " ++ (show nSteps) ++ " steps."
