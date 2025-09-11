@@ -171,10 +171,6 @@ mapToTransitionRule ruleMap = \key -> case Map.lookup key ruleMap of
     Just result -> result
     Nothing -> error $ "No transition rule found for: " ++ show key
 
---exampleRule :: TransitionRule
---exampleRule (Blank,HeadState "state1") = (Blank,JumpRight,HeadState "state1")
---exampleRule (Dash,HeadState "state1") = (Dash,JumpLeft,HeadState "state1")
-
 data Options = Options
     { optTapeStateFile :: String
      ,optTransRuleFile :: String
