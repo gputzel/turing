@@ -1,0 +1,4 @@
+. A -> - JumpRight B
+. B -> - JumpLeft A
+- A -> - JumpLeft B
+- B -> - JumpRight Halt
