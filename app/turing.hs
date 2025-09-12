@@ -7,6 +7,7 @@ import Data.Char (toLower)
 
 import Text.Parsec
 import Text.Parsec.String (Parser)
+--import Control.Applicative ((<|>))
 --import Text.Parsec.Char
 --import Text.Parsec.Combinator
 import qualified Options.Applicative as Opt
@@ -119,13 +120,30 @@ tapeSymbol = choice
     , char '.' >> return Blank
     ]
 
+runCount :: Parser Int
+runCount = do
+    digits <- many1 digit
+    return $ read digits
+    <|> return 1
+
+tapeSymbolRun :: Parser [TapeSymbol]
+tapeSymbolRun = do
+    n <- runCount
+    theTapeSymbol <- tapeSymbol
+    return $ replicate n theTapeSymbol
+
+tapeSymbolSequence :: Parser [TapeSymbol]
+tapeSymbolSequence = do
+    theSymbols <- many tapeSymbolRun
+    return $ concat theSymbols
+
 tapeStateParser :: Parser TapeState
 tapeStateParser = do
-    leftLine <- many tapeSymbol
+    leftLine <- tapeSymbolSequence
     char '\n'
     currentSym <- tapeSymbol
     char '\n'
-    rightLine <- many tapeSymbol
+    rightLine <- tapeSymbolSequence
     return ((reverse leftLine) ++ allBlanks,currentSym,rightLine ++ allBlanks)
 
 headStateParser :: Parser HeadState
