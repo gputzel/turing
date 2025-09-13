@@ -289,4 +289,4 @@ main = do
     --Run it
     let mState = MachineState{tapeState = tapeStateResult,headState=HeadState initialState}
     (finalState,nSteps) <- countStepsWithPrint displayMode nCols transFunc (mState, 0)
-    putStrLn $ "Finished in " ++ (show nSteps) ++ " steps."
+    putStrLn $ "Halted in " ++ (show nSteps) ++ " steps."
