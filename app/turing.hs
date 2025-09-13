@@ -21,6 +21,10 @@ import Text.Read (readMaybe)
 
 import Control.Concurrent (threadDelay)
 
+import System.IO (hSetBuffering, stdin, BufferMode(NoBuffering), hFlush, stdout)
+import Control.Concurrent (forkIO, killThread)
+import Control.Concurrent.MVar (newEmptyMVar, putMVar, takeMVar)
+
 data TapeSymbol = Dash | Blank
     deriving (Eq,Ord)
 
@@ -105,14 +109,28 @@ doStep transRule (MachineState tapeState headState) =
         newTapeState = applyMove headMove $ writeSymbol newSymbol tapeState
     in MachineState newTapeState newHeadState
 
-countStepsWithPrint :: Int -> TransitionRule -> (MachineState,Int) -> IO (MachineState,Int)
-countStepsWithPrint _ _ ((MachineState tState Halt),n) = return ((MachineState tState Halt),n)
-countStepsWithPrint consoleWidth tRule (mState,n) = do
-    putStrLn $ showMachine consoleWidth mState
-    threadDelay 2000
-    countStepsWithPrint consoleWidth tRule (nextState,n+1) where
-        nextState = doStep tRule mState
+waitForSpacebar :: IO ()
+waitForSpacebar = do
+    hSetBuffering stdin NoBuffering  -- Disable input buffering
+    hFlush stdout
+    waitForSpace
+  where
+    waitForSpace = do
+        c <- getChar
+        if c == ' '
+            then return ()
+            else waitForSpace
 
+countStepsWithPrint :: DisplayMode -> Int -> TransitionRule -> (MachineState,Int) -> IO (MachineState,Int)
+countStepsWithPrint _ _ _ ((MachineState tState Halt),n) = return ((MachineState tState Halt),n)
+countStepsWithPrint dMode consoleWidth tRule (mState,n) = do
+    case dMode of
+        Silent -> return()
+        Verbose -> putStrLn $ showMachine consoleWidth mState
+        Slow -> do putStrLn $ showMachine consoleWidth mState; threadDelay 2000
+        Spacebar -> do putStrLn $ showMachine consoleWidth mState; waitForSpacebar
+    countStepsWithPrint dMode consoleWidth tRule (nextState,n+1) where
+        nextState = doStep tRule mState
 
 tapeSymbol :: Parser TapeSymbol
 tapeSymbol = choice
@@ -189,10 +207,24 @@ mapToTransitionRule ruleMap = \key -> case Map.lookup key ruleMap of
     Just result -> result
     Nothing -> error $ "No transition rule found for: " ++ show key
 
+data DisplayMode = Silent | Verbose | Slow | Spacebar
+    deriving (Show, Read, Eq)
+
+displayModeReader :: Opt.ReadM DisplayMode
+displayModeReader = Opt.eitherReader $ \s ->
+    case s of
+        "silent"   -> Right Silent
+        "verbose"  -> Right Verbose
+        "slow"     -> Right Slow
+        "spacebar" -> Right Spacebar
+        _          -> Left $ "Invalid display mode: " ++ s ++ 
+                            ". Valid options are: silent, verbose, slow, spacebar"
+
 data Options = Options
     { optTapeStateFile :: String
      ,optTransRuleFile :: String
      ,optInitialHeadState :: String
+     ,optDisplayMode :: DisplayMode
     } deriving (Show)
 
 options :: Opt.Parser Options
@@ -209,16 +241,22 @@ options = Options
         ( Opt.long "initialState"
         <> Opt.metavar "STATE"
         <> Opt.help "Initial state of Turing machine head")
+    <*> Opt.option displayModeReader
+        ( Opt.long "displayMode"
+        <> Opt.metavar "MODE"
+        <> Opt.help "Display mode (silent, verbose, slow, spacebar)"
+        <> Opt.value Silent  -- Default value
+        <> Opt.showDefault )
 
 opts :: Opt.ParserInfo Options
 opts = Opt.info (options <**> Opt.helper)
     ( Opt.fullDesc
-   <> Opt.progDesc "Parse a Turing machine tape state"
-   <> Opt.header "tape-parser - a Turing machine tape state parser" )
+   <> Opt.progDesc "Simulate a Turing machine"
+   <> Opt.header "turing - Turing machine simulator" )
 
 main :: IO ()
 main = do
-    Options { optTapeStateFile = tapeStateFile, optTransRuleFile = transRuleFile, optInitialHeadState = initialState } <- Opt.execParser opts
+    Options { optTapeStateFile = tapeStateFile, optTransRuleFile = transRuleFile, optInitialHeadState = initialState, optDisplayMode = displayMode } <- Opt.execParser opts
   
     --Find out column numbers 
     nCols <- getColumnNumber
@@ -250,5 +288,5 @@ main = do
                 Right tapeStateResult -> return tapeStateResult
     --Run it
     let mState = MachineState{tapeState = tapeStateResult,headState=HeadState initialState}
-    (finalState,nSteps) <- countStepsWithPrint nCols transFunc (mState, 0)
+    (finalState,nSteps) <- countStepsWithPrint displayMode nCols transFunc (mState, 0)
     putStrLn $ "Finished in " ++ (show nSteps) ++ " steps."

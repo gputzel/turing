@@ -1,5 +1,6 @@
 # turing
-Turing machine simulator
+
+Turing machine simulator written in Haskell.
 
 Try
 
