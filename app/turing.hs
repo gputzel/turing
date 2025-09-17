@@ -1,5 +1,7 @@
 --Some ideas
 --Optionally, view the tape as fixed so that the head moves back and forth
+--Spacebar mode doesn't work: it's not just detecting the space bar but also inserting a space
+--We need to get input directly from the keyboard without showing the result
 
 import qualified Data.Map as Map
 import Data.Map (Map)
@@ -36,6 +38,7 @@ data HeadState = Halt | HeadState String
     deriving (Eq,Ord)
 
 instance Show HeadState where
+    show Halt = "Halt"
     show (HeadState str) = str
 
 data HeadMove = JumpLeft | JumpRight | Stay
@@ -122,7 +125,9 @@ waitForSpacebar = do
             else waitForSpace
 
 countStepsWithPrint :: DisplayMode -> Int -> TransitionRule -> (MachineState,Int) -> IO (MachineState,Int)
-countStepsWithPrint _ _ _ ((MachineState tState Halt),n) = return ((MachineState tState Halt),n)
+countStepsWithPrint dMode consoleWidth _ ((MachineState tState Halt),n) = do
+    putStrLn $ showMachine consoleWidth (MachineState tState Halt)
+    return ((MachineState tState Halt),n)
 countStepsWithPrint dMode consoleWidth tRule (mState,n) = do
     case dMode of
         Silent -> return()
