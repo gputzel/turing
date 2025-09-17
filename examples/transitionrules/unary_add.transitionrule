@@ -1,0 +1,6 @@
+- start -> . JumpRight SearchingRightForGap
+. start -> - Stay Halt
+. SearchingRightForGap -> - JumpLeft SearchingLeftForBeginning
+- SearchingRightForGap -> - JumpRight SearchingRightForGap
+. SearchingLeftForBeginning -> . JumpRight Halt
+- SearchingLeftForBeginning -> - JumpLeft SearchingLeftForBeginning

@@ -1,0 +1,6 @@
+- start -> - Stay oddPosGoingRight
+. start -> . Stay Halt
+- oddPosGoingRight -> . JumpRight evenPosGoingRight
+. oddPosGoingRight -> - Stay Halt
+. evenPosGoingRight -> - Stay Halt
+- evenPosGoingRight -> . JumpRight oddPosGoingRight
