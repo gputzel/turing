@@ -198,8 +198,15 @@ transitionRuleParser = do
 
 transitionMapParser :: Parser TransitionMap
 transitionMapParser = do
-    rules <- sepEndBy transitionRuleParser (char '\n' >> spaces)
-    return $ Map.fromList rules
+        spaces
+        rules <- sepEndBy transitionRuleParser separator--(char '\n' >> spaces)
+        spaces
+        return $ Map.fromList rules
+    where
+        separator = do
+            char '\n'
+            spaces
+            skipMany (char '\n' >> spaces)
 
 parseTransitionRule :: String -> Either ParseError ((TapeSymbol, HeadState), (TapeSymbol, HeadMove, HeadState))
 parseTransitionRule = parse transitionRuleParser ""
