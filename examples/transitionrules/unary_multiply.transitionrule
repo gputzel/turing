@@ -1,0 +1,99 @@
+- start -> - Stay unary_multiply
+. start -> . Stay error_should_be_dash
+
+- unary_multiply -> - Stay decrement
+. unary_multiply -> . Stay error_should_be_dash
+
+- decrement -> . JumpRight check_decrement
+- check_decrement -> - Stay unary_multiply_post_decrement
+. check_decrement -> . Stay seek_dash_right_pre_cleanup
+
+- seek_dash_right_pre_cleanup -> - Stay begin_cleanup
+. seek_dash_right_pre_cleanup -> . JumpRight seek_dash_right_pre_cleanup
+
+- begin_cleanup -> - Stay seek_gap_right
+. begin_cleanup -> . Stay error_should_be_dash
+
+- seek_gap_right -> - JumpRight seek_gap_right
+. seek_gap_right -> - JumpRight check_gap_right
+- check_gap_right -> - JumpLeft found_gap_return_left
+. check_gap_right -> . JumpLeft begin_final_return
+- begin_final_return -> . JumpLeft final_return
+. begin_final_return -> . Stay dunno
+- found_gap_return_left -> - JumpLeft found_gap_return_left
+. found_gap_return_left -> . JumpRight delete_this_and_jump_right
+- delete_this_and_jump_right -> . JumpRight seek_gap_right
+
+- final_return -> - JumpLeft final_return
+. final_return -> . JumpRight Halt
+
+- unary_multiply_post_decrement -> - JumpRight unary_multiply_post_decrement
+. unary_multiply_post_decrement -> . JumpRight beginning_of_y
+
+- unary_multiply_post_decrement -> - Stay right_seek_double_dot
+. unary_multiply_post_decrement -> . Stay error_should_be_dash
+
+- right_seek_double_dot -> - JumpRight right_seek_double_dot
+. right_seek_double_dot -> . JumpRight right_seek_double_dot_found_one_dot
+- right_seek_double_dot_found_one_dot -> - JumpRight right_seek_double_dot
+. right_seek_double_dot_found_one_dot -> . Stay double_dot_found_going_right
+
+- double_dot_found_going_right -> - Stay error_should_be_dot
+. double_dot_found_going_right -> . JumpLeft jump_left_again
+- jump_left_again -> - Stay error_should_be_dot
+. jump_left_again -> . JumpLeft seek_block_beginning_left
+
+- seek_block_beginning_left -> - JumpLeft seek_block_beginning_left
+. seek_block_beginning_left -> . JumpRight shift_then_copy
+
+- beginning_of_y -> - Stay shift_then_copy
+. beginning_of_y -> . Stay error_should_be_dash
+
+- done_copy -> - Stay left_seek_double_dot
+. done_copy -> . Stay error_should_be_dash
+
+- left_seek_double_dot -> - JumpLeft left_seek_double_dot
+. left_seek_double_dot -> . JumpLeft left_seek_double_dot_found_one_dot
+- left_seek_double_dot_found_one_dot -> - JumpLeft left_seek_double_dot
+. left_seek_double_dot_found_one_dot -> . Stay double_dot_found_going_left
+
+- double_dot_found_going_left -> - Stay error_should_be_dot
+. double_dot_found_going_left -> . JumpRight jump_right_again
+- jump_right_again -> - Stay error_shoudl_be_dot
+. jump_right_again -> . JumpRight decrement
+
+- shift_then_copy -> - Stay shift_block
+. shift_then_copy -> . Stay error_should_be_dash
+. shift_block -> . Stay error_shift_block_should_be_dash
+- shift_block -> . JumpRight movingright
+- movingright -> - JumpRight movingright
+. movingright -> - JumpLeft movingleft
+- movingleft -> - JumpLeft movingleft
+. movingleft -> . JumpRight copy_block
+- copy_block -> . JumpLeft init1
+. copy_block -> . Stay done_copy
+. init1 -> - Stay init2
+- init2 -> - JumpRight init2
+. init2 -> . JumpRight init3
+. init3 -> - JumpLeft almostdone
+- init3 -> - JumpRight init4
+. almostdone -> . JumpLeft done_copy
+- init4 -> - JumpRight init4
+. init4 -> . JumpRight init5
+- init5 -> - Stay blah
+. init5 -> - Stay init6
+- init6 -> - JumpLeft left3
+- left3 -> - JumpLeft left3
+. left3 -> . JumpLeft left2
+- left2 -> - JumpLeft left2
+. left2 -> - JumpRight right1
+- right1 -> . JumpRight right2
+. right2 -> - JumpLeft home1
+. home1 -> . JumpLeft home2
+- home2 -> - JumpLeft home2
+. home2 -> . JumpRight done_copy
+- right2 -> - JumpRight right3
+. right3 -> . JumpRight right4
+- right3 -> - JumpRight right3
+- right4 -> - JumpRight right4
+. right4 -> - Stay left3
