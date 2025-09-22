@@ -23,7 +23,7 @@ import Text.Read (readMaybe)
 
 import Control.Concurrent (threadDelay)
 
-import System.IO (hSetBuffering, stdin, BufferMode(NoBuffering), hFlush, stdout)
+import System.IO (hSetEcho, hSetBuffering, stdin, BufferMode(NoBuffering), hFlush, stdout)
 import Control.Concurrent (forkIO, killThread)
 import Control.Concurrent.MVar (newEmptyMVar, putMVar, takeMVar)
 
@@ -115,8 +115,10 @@ doStep transRule (MachineState tapeState headState) =
 waitForSpacebar :: IO ()
 waitForSpacebar = do
     hSetBuffering stdin NoBuffering  -- Disable input buffering
-    hFlush stdout
+    hSetEcho stdin False
+    --hFlush stdout
     waitForSpace
+    hSetEcho stdin True
   where
     waitForSpace = do
         c <- getChar
