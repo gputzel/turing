@@ -1,7 +1,5 @@
 --Some ideas
 --Optionally, view the tape as fixed so that the head moves back and forth
---Spacebar mode doesn't work: it's not just detecting the space bar but also inserting a space
---We need to get input directly from the keyboard without showing the result
 
 import qualified Data.Map as Map
 import Data.Map (Map)
