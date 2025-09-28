@@ -1,0 +1,6 @@
+. start -> . Stay error_shift_block_should_be_dash
+- start -> . JumpRight movingright
+- movingright -> - JumpRight movingright
+. movingright -> - JumpLeft movingleft
+- movingleft -> - JumpLeft movingleft
+. movingleft -> . JumpRight Halt
