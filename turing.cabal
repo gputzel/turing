@@ -62,7 +62,7 @@ executable turing
     main-is:          turing.hs
 
     -- Modules included in this executable, other than Main.
-    -- other-modules:
+    other-modules: TuringMachine
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
@@ -75,7 +75,8 @@ executable turing
                       containers
 
     -- Directories containing source files.
-    hs-source-dirs:   app
+    hs-source-dirs:   app,
+                      src
 
     -- Base language which the package is written in.
     default-language: Haskell2010
