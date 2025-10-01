@@ -3,6 +3,8 @@ import TuringMachine.Types
 import TuringMachine.Display
 import TuringMachine.Parse
 
+import Lexer
+
 import Text.Parsec
 import qualified Options.Applicative as Opt
 import Options.Applicative ((<**>))
@@ -59,6 +61,11 @@ main = do
   
     --Find out column numbers 
     nCols <- getColumnNumber
+
+    --Under construction: lexing using Alex
+    testInput <- readFile transRuleFile
+    let tokens = alexScanTokens testInput
+    print tokens
 
     --Read in transition rule
     transRuleResult <- tryIOError $ readFile transRuleFile

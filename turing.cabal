@@ -72,7 +72,8 @@ executable turing
                       parsec,
                       optparse-applicative,
                       process,
-                      containers
+                      containers,
+                      array
 
     -- Directories containing source files.
     hs-source-dirs:   app,
