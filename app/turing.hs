@@ -64,14 +64,14 @@ main = do
     --Find out column numbers 
     nCols <- getColumnNumber
 
-    --Under construction: lexing using Alex
+    --Under construction - lex and parse using Alex/Happy
     testInput <- readFile transRuleFile
     let tokens = alexScanTokens testInput
     let transMap = parseTransitions tokens
     let transRule = mapToTransitionRule transMap    
-    print transMap
 
     --Read in transition rule
+    --Currently this is redundant
     transRuleResult <- tryIOError $ readFile transRuleFile
     transFunc <- case transRuleResult of
         Left ioErr -> do
@@ -98,5 +98,6 @@ main = do
                 Right tapeStateResult -> return tapeStateResult
     --Run it
     let mState = MachineState{tapeState = tapeStateResult,headState=HeadState initialState}
-    (finalState,nSteps) <- countStepsWithPrint displayMode nCols transFunc (mState, 0)
+    --(finalState,nSteps) <- countStepsWithPrint displayMode nCols transFunc (mState, 0)
+    (finalState,nSteps) <- countStepsWithPrint displayMode nCols transRule (mState, 0)
     putStrLn $ "Halted in " ++ (show nSteps) ++ " steps."
