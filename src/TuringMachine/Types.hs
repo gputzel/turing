@@ -1,5 +1,6 @@
 module TuringMachine.Types where
 
+import qualified Data.Map as Map
 import Data.Map (Map)
 
 data TapeSymbol = Dash | Blank
