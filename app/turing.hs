@@ -3,7 +3,9 @@ import TuringMachine.Types
 import TuringMachine.Display
 import TuringMachine.Parse
 
+--Alex/Happy stuff
 import Lexer
+import Parser
 
 import Text.Parsec
 import qualified Options.Applicative as Opt
@@ -65,7 +67,9 @@ main = do
     --Under construction: lexing using Alex
     testInput <- readFile transRuleFile
     let tokens = alexScanTokens testInput
-    print tokens
+    let transMap = parseTransitions tokens
+    let transRule = mapToTransitionRule transMap    
+    print transMap
 
     --Read in transition rule
     transRuleResult <- tryIOError $ readFile transRuleFile
