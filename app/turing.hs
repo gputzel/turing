@@ -72,17 +72,17 @@ main = do
 
     --Read in transition rule
     --Currently this is redundant
-    transRuleResult <- tryIOError $ readFile transRuleFile
-    transFunc <- case transRuleResult of
-        Left ioErr -> do
-            putStrLn $ "Error reading transition rules file: " ++ show ioErr
-            exitFailure
-        Right transRuleContent ->
-            case parseTransitionRules transRuleFile transRuleContent of
-                Left err -> do
-                    putStrLn $ "Parse error in transition rules: " ++ show err
-                    exitFailure
-                Right ruleMap -> return $ mapToTransitionRule ruleMap
+    --transRuleResult <- tryIOError $ readFile transRuleFile
+    --transFunc <- case transRuleResult of
+    --    Left ioErr -> do
+    --        putStrLn $ "Error reading transition rules file: " ++ show ioErr
+    --        exitFailure
+    --    Right transRuleContent ->
+    --        case parseTransitionRules transRuleFile transRuleContent of
+    --            Left err -> do
+    --                putStrLn $ "Parse error in transition rules: " ++ show err
+    --                exitFailure
+    --            Right ruleMap -> return $ mapToTransitionRule ruleMap
 
     --Read in tape state
     result <- tryIOError $ readFile tapeStateFile

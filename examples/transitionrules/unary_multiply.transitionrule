@@ -1,5 +1,9 @@
-- start -> - Stay unary_multiply
-. start -> . Stay error_should_be_dash
+#My own implementation of unary multiple
+#Not as elegant as the solution in the textbook
+- start -> - Stay unary_multiply #This is a comment
+. start -> . Stay error_should_be_dash#This is another comment
+
+#Comment
 
 - unary_multiply -> - Stay decrement
 . unary_multiply -> . Stay error_should_be_dash
