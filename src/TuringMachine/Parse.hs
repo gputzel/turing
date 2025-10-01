@@ -1,7 +1,11 @@
 module TuringMachine.Parse where
 
+import TuringMachine.Types
+
+import Data.Char (toLower)
 import Text.Parsec
 import Text.Parsec.String (Parser)
+import qualified Data.Map as Map
 
 tapeSymbol :: Parser TapeSymbol
 tapeSymbol = choice
