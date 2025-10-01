@@ -3,6 +3,7 @@ module TuringMachine.Display where
 import System.Process
 import TuringMachine.Types
 import Text.Read (readMaybe)
+import System.IO (hSetEcho, hSetBuffering, stdin, BufferMode(NoBuffering), hFlush, stdout)
 
 showTape :: Int -> TapeState -> String
 showTape halfWidth (leftTape,s,rightTape) = leftString ++ middleChar ++ rightString
@@ -29,3 +30,20 @@ getColumnNumber = do
         Nothing -> 80
     where
         strip = reverse . dropWhile (== '\n') . reverse
+
+waitForSpacebar :: IO ()
+waitForSpacebar = do
+    hSetBuffering stdin NoBuffering  -- Disable input buffering
+    hSetEcho stdin False
+    --hFlush stdout
+    waitForSpace
+    hSetEcho stdin True
+  where
+    waitForSpace = do
+        c <- getChar
+        if c == ' '
+            then return ()
+            else waitForSpace
+
+data DisplayMode = Silent | Verbose | Slow | Spacebar
+    deriving (Show, Read, Eq)
