@@ -1,0 +1,74 @@
+- start -> - Stay collatz
+. start -> . Stay collatz
+
+- collatz -> - JumpRight check_one
+. collatz -> . Stay error_should_be_dash
+
+- check_one -> - JumpLeft parity_check_odd_position
+. check_one -> . JumpLeft Halt
+
+- parity_check_odd_position -> - JumpRight parity_check_even_position
+. parity_check_odd_position -> . JumpLeft seek_left_parity_even
+
+- parity_check_even_position -> - JumpRight parity_check_odd_position
+. parity_check_even_position -> . JumpLeft seek_left_parity_odd
+
+- seek_left_parity_even -> - JumpLeft seek_left_parity_even
+. seek_left_parity_even -> . JumpRight divby2
+
+- seek_left_parity_odd -> - JumpLeft seek_left_parity_odd
+. seek_left_parity_odd -> . JumpRight triple
+
+#BEGIN divby2
+- divby2 -> . JumpRight seek_right_deleted_1
+. divby2 -> . Stay dunno #I don't think this should happen
+- seek_right_deleted_1 -> . JumpRight seek_right_in_left_block
+. seek_right_deleted_1  -> . Stay done_remainder_1
+- done_remainder_1 -> . JumpRight deleted_remainder
+. done_remainder_1 -> . Stay final_seek_right_block
+- deleted_remainder -> - Stay collatz
+. deleted_remainder -> . Stay dunno
+- seek_right_in_left_block -> - JumpRight seek_right_in_left_block
+. seek_right_in_left_block -> . JumpRight seek_right_in_right_block
+- seek_right_in_right_block -> - JumpRight seek_right_in_right_block
+. seek_right_in_right_block -> - JumpLeft seek_left_in_right_block
+- seek_left_in_right_block -> - JumpLeft seek_left_in_right_block
+. seek_left_in_right_block -> . JumpLeft seek_left_block
+- seek_left_block -> - JumpLeft seek_left_in_left_block
+. seek_left_block -> . JumpRight final_seek_right_block
+- final_seek_right_block -> - Stay collatz
+. final_seek_right_block -> . JumpRight collatz
+- seek_left_in_left_block -> - JumpLeft seek_left_in_left_block
+. seek_left_in_left_block -> . JumpRight divby2
+#END divby2
+
+#BEGIN triple
+#Triple the input number
+- triple -> . JumpRight SUB_triple_seek_right_in_left_block
+. triple -> . Stay increment #Three times zero
+- SUB_triple_seek_right_in_left_block -> - JumpRight SUB_triple_seek_right_in_left_block
+. SUB_triple_seek_right_in_left_block -> . JumpRight SUB_triple_beginning_of_right_block
+- SUB_triple_beginning_of_right_block -> - JumpRight SUB_triple_seek_right_right_block
+. SUB_triple_beginning_of_right_block -> . Stay SUB_triple_add_3
+- SUB_triple_seek_right_right_block -> - JumpRight SUB_triple_seek_right_right_block
+. SUB_triple_seek_right_right_block -> . Stay SUB_triple_add_3
+- SUB_triple_add_3 -> - Stay SUB_triple_error_should_be_blank
+. SUB_triple_add_3 -> - JumpRight SUB_triple_add_2
+- SUB_triple_add_2 -> - Stay SUB_triple_error_should_be_blank
+. SUB_triple_add_2 -> - JumpRight SUB_triple_add_1
+- SUB_triple_add_1 -> - Stay SUB_triple_error_should_be_blank
+. SUB_triple_add_1 -> - Stay SUB_triple_seek_left_right_block
+- SUB_triple_seek_left_right_block -> - JumpLeft SUB_triple_seek_left_right_block
+. SUB_triple_seek_left_right_block -> . JumpLeft SUB_triple_right_end_left_block
+- SUB_triple_right_end_left_block -> - Stay SUB_triple_seek_left_left_block
+. SUB_triple_right_end_left_block -> . JumpRight SUB_triple_final_seek_right_block
+- SUB_triple_final_seek_right_block -> - Stay increment
+. SUB_triple_final_seek_right_block -> . JumpRight SUB_triple_final_seek_right_block
+- SUB_triple_seek_left_left_block -> - JumpLeft SUB_triple_seek_left_left_block
+. SUB_triple_seek_left_left_block -> . JumpRight triple
+#END triple
+
+- increment -> - JumpRight increment
+. increment -> - JumpLeft seek_left_after_increment
+- seek_left_after_increment -> - JumpLeft seek_left_after_increment
+. seek_left_after_increment -> . JumpRight collatz
