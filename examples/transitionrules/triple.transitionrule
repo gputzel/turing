@@ -1,0 +1,36 @@
+#Triple the input number
+- start -> - Stay triple
+. start -> . Stay triple
+
+- triple -> . JumpRight seek_right_in_left_block
+. triple -> . Stay Halt #Three times zero
+
+- seek_right_in_left_block -> - JumpRight seek_right_in_left_block
+. seek_right_in_left_block -> . JumpRight beginning_of_right_block
+
+- beginning_of_right_block -> - JumpRight seek_right_right_block
+. beginning_of_right_block -> . Stay add_3
+
+- seek_right_right_block -> - JumpRight seek_right_right_block
+. seek_right_right_block -> . Stay add_3
+
+- add_3 -> - Stay error_should_be_blank
+. add_3 -> - JumpRight add_2
+
+- add_2 -> - Stay error_should_be_blank
+. add_2 -> - JumpRight add_1
+
+- add_1 -> - Stay error_should_be_blank
+. add_1 -> - Stay seek_left_right_block
+
+- seek_left_right_block -> - JumpLeft seek_left_right_block
+. seek_left_right_block -> . JumpLeft right_end_left_block
+
+- right_end_left_block -> - Stay seek_left_left_block
+. right_end_left_block -> . JumpRight final_seek_right_block
+
+- final_seek_right_block -> - Stay Halt
+. final_seek_right_block -> . JumpRight final_seek_right_block
+
+- seek_left_left_block -> - JumpLeft seek_left_left_block
+. seek_left_left_block -> . JumpRight triple
