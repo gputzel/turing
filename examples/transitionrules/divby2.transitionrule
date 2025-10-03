@@ -1,0 +1,34 @@
+- start -> - Stay divby2
+. start -> . Stay Halt #0 divided by 2 is 0
+
+- divby2 -> . JumpRight seek_right_deleted_1
+. divby2 -> . Stay dunno #I don't think this should happen
+
+#If we find another dash, delete it and move on to the end of the left block
+- seek_right_deleted_1 -> . JumpRight seek_right_in_left_block
+# We may find a blank, in which case we're done, with a remainder of 1
+. seek_right_deleted_1  -> . Stay done_remainder_1
+
+- done_remainder_1 -> . JumpRight deleted_remainder
+. done_remainder_1 -> . Stay final_seek_right_block
+
+- deleted_remainder -> - Stay Halt
+. deleted_remainder -> . Stay dunno
+
+- seek_right_in_left_block -> - JumpRight seek_right_in_left_block
+. seek_right_in_left_block -> . JumpRight seek_right_in_right_block
+
+- seek_right_in_right_block -> - JumpRight seek_right_in_right_block
+. seek_right_in_right_block -> - JumpLeft seek_left_in_right_block
+
+- seek_left_in_right_block -> - JumpLeft seek_left_in_right_block
+. seek_left_in_right_block -> . JumpLeft seek_left_block
+
+- seek_left_block -> - JumpLeft seek_left_in_left_block
+. seek_left_block -> . JumpRight final_seek_right_block
+
+- final_seek_right_block -> - Stay Halt
+. final_seek_right_block -> . JumpRight Halt
+
+- seek_left_in_left_block -> - JumpLeft seek_left_in_left_block
+. seek_left_in_left_block -> . JumpRight divby2
