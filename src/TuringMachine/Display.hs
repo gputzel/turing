@@ -19,7 +19,7 @@ showMachine consoleWidth MachineState {tapeState=ts, headState=hs} = headRow ++ 
         halfWidth = (consoleWidth - (if odd consoleWidth then 1 else 2)) `div` 2
         spaces = concat $ take halfWidth $ repeat " "
         rightSpaces = concat $ take (halfWidth - 2 - (length headStateName)) $ repeat " "
-        headRow = spaces ++ "V[" ++ headStateName ++ "]" ++ rightSpaces
+        headRow = spaces ++ "↓[" ++ headStateName ++ "]" ++ rightSpaces
         tapeRow = showTape halfWidth ts
 
 getColumnNumber :: IO Int
