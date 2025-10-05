@@ -84,6 +84,5 @@ main = do
                 Right memoryStateResult -> return memoryStateResult
 
     let mstate = AbacusMachineState initialState memory
-    let newstate = doStep amap mstate
-    putStrLn $ show mstate
-    putStrLn $ show newstate
+    (finalState,nSteps) <- countStepsWithPrint displayMode nCols amap (mstate,0)
+    putStrLn $ "Halted in " ++ (show nSteps) ++ " steps."

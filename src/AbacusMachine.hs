@@ -1,6 +1,8 @@
 module AbacusMachine where
 
 import AbacusMachine.Types
+import AbacusMachine.Display
+import Control.Concurrent (threadDelay)
 import qualified Data.Map as Map
 
 doStep :: AbacusMap -> AbacusMachineState -> AbacusMachineState
@@ -17,3 +19,16 @@ doStep amap (AbacusMachineState stateName mstate) =
             Just n -> AbacusMachineState nextState newMemoryState where
                 newMemoryState = Map.adjust (subtract 1) register mstate
             Nothing -> error $ "There is no register called " ++ register
+
+countStepsWithPrint :: DisplayMode -> Int -> AbacusMap -> (AbacusMachineState,Int) -> IO (AbacusMachineState,Int)
+countStepsWithPrint dMode consoleWidth _ ((AbacusMachineState "Halt" memory),n) = do
+    putStrLn $ show (AbacusMachineState "Halt" memory)
+    return ((AbacusMachineState "Halt" memory),n)
+countStepsWithPrint dMode consoleWidth amap (mState,n) = do
+    case dMode of
+        Silent -> return()
+        Verbose -> putStrLn $ show mState
+        Slow -> do putStrLn $ show mState; threadDelay 60000
+        Spacebar -> do putStrLn $ show mState; waitForSpacebar
+    countStepsWithPrint dMode consoleWidth amap (nextState,n+1) where
+        nextState = doStep amap mState
