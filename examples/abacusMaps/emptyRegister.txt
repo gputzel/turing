@@ -1,1 +1,2 @@
+#Empty the contents of register 'target'
 empty: Decrement target empty Halt
