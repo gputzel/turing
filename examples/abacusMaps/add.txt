@@ -1,0 +1,8 @@
+#Sum the values in registers m and n. Store the result in n.
+#Makes use of a third register, p
+#ASSUMPTIONS: p is initialized to 0
+decrement_m: Decrement m increment_n decrement_p
+increment_n: Increment n increment_p
+increment_p: Increment p decrement_m
+decrement_p: Decrement p increment_m Halt
+increment_m: Increment m decrement_p
