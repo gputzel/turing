@@ -29,5 +29,5 @@ memoryStateParser = do
     eof
     return $ Map.fromList lines
 
-parseMemoryState :: String -> Either ParseError MemoryState
-parseMemoryState = parse memoryStateParser ""
+parseMemoryState :: String -> String -> Either ParseError MemoryState
+parseMemoryState filename content = parse memoryStateParser filename content
