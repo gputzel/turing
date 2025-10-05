@@ -3,6 +3,9 @@ import AbacusMachine.Types
 import AbacusMachine.ParseMemory
 import AbacusMachine.Display
 
+import AbacusLexer
+import AbacusParser
+
 import qualified Data.Map as Map
 import Text.Parsec
 
@@ -59,6 +62,14 @@ main :: IO ()
 main = do
     Options { optMemoryFile = memoryFile, optAbacusMapFile = abacusMapFile, optInitialState = initialState, optDisplayMode = displayMode } <- Opt.execParser opts    
 
+    --Find out column numbers 
+    nCols <- getColumnNumber
+
+    abacusInput <- readFile abacusMapFile
+    let tokens = alexScanTokens abacusInput
+    let amap = parseAbacus tokens
+    
+
     --read memory state
     memoryFileResults <- tryIOError $ readFile memoryFile    
     memory <- case memoryFileResults of
@@ -72,8 +83,7 @@ main = do
                     exitFailure
                 Right memoryStateResult -> return memoryStateResult
 
-    let amap = Map.fromList[("start",Decrement "A" "start" "Halt")]
-    let mstate = AbacusMachineState "start" memory
+    let mstate = AbacusMachineState initialState memory
     let newstate = doStep amap mstate
     putStrLn $ show mstate
     putStrLn $ show newstate

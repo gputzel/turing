@@ -10,7 +10,6 @@ doStep amap (AbacusMachineState stateName mstate) =
             Just result -> result
             Nothing -> error $ "No state named: " ++ show stateName
     in case rule of
-        Halt -> AbacusMachineState "Halt" mstate
         Increment register nextState -> AbacusMachineState nextState newMemoryState where
             newMemoryState = Map.adjust (+1) register mstate
         Decrement register nextState nextStateIfEmpty -> case Map.lookup register mstate of

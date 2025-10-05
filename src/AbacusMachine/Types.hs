@@ -4,7 +4,7 @@ import qualified Data.Map as Map
 import Data.Map (Map)
 
 type AbacusStateName = String
-data AbacusRule = Halt | Increment {register :: Register, nextState :: AbacusStateName} | Decrement {register :: Register, nextState :: AbacusStateName, nextStateIfEmpty :: AbacusStateName}
+data AbacusRule = Increment {register :: Register, nextState :: AbacusStateName} | Decrement {register :: Register, nextState :: AbacusStateName, nextStateIfEmpty :: AbacusStateName}
     deriving (Show,Eq,Ord)
 type AbacusMap = Map AbacusStateName AbacusRule
 

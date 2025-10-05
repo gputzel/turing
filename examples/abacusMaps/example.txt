@@ -1,0 +1,3 @@
+stateA : Increment A stateB
+stateB : Decrement B stateB stateC
+stateC : Increment A Halt
