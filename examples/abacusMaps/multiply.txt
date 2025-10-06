@@ -1,0 +1,9 @@
+#Multiply the contents of m1 and m2, putting the results in n.
+#m1 becomes zero in the process
+#Registers n and p are assumed to be initialized to 0
+decm1: Decrement m1 decm2 Halt
+decm2: Decrement m2 incn decp
+incn: Increment n incp
+incp: Increment p decm2
+decp: Decrement p incm2 decm1
+incm2: Increment m2 decp
