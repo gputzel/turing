@@ -1,8 +1,17 @@
 module AbacusMachine.Display where
 
+import AbacusMachine.Types
 import System.Process
 import Text.Read (readMaybe)
 import System.IO (hSetEcho, hSetBuffering, stdin, BufferMode(NoBuffering), hFlush, stdout)
+import Data.List (intercalate)
+import qualified Data.Map as Map
+
+showMachine :: Int -> AbacusMachineState -> String
+showMachine consoleWidth (AbacusMachineState stateName mstate) = "[" ++ stateName ++ "]" ++ someSpaces ++ memoryString where
+    memoryString = intercalate " | " $ map formatPair $ Map.toList mstate
+    formatPair (k, v) = k ++ "=" ++ show v
+    someSpaces = "     "
 
 getColumnNumber :: IO Int
 getColumnNumber = do
