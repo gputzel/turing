@@ -1,0 +1,4 @@
+#Move the contents of register 'from' into register 'to'
+#ASSUMPTIONS: register 'to' is initially zero
+dec:Decrement from inc Halt
+inc:Increment to dec
