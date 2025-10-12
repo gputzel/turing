@@ -78,9 +78,7 @@ stitchList ((tMap,prefix,hState):l) = stitch leftMap rightMap hState
         rightMap = stitchList l 
 
 make_incrementer :: Int -> TransitionMap
---make_incrementer :: Int -> [(String,HeadState)]
 make_incrementer n = stitchList $ zip3 tMaps prefixes hStates
---make_incrementer n = zip prefixes hStates
     where
         tMaps = initialBlocks ++ [incrementer_transitional_block,incrementer_end]
         initialBlocks = take (n-1) $ repeat incrementer_initial_block
@@ -91,3 +89,53 @@ make_incrementer n = stitchList $ zip3 tMaps prefixes hStates
         initialStates = take (n-1) $ zipWith zipper s [2..]
         zipper str i = HeadState (str ++ (show i) ++ "a")
         s = repeat "s"
+
+rewire :: TransitionMap -> (TapeSymbol,HeadState) -> (TapeSymbol, HeadMove, HeadState) -> TransitionMap
+rewire tMap key value = Map.insert key value tMap
+
+decrementer_begin :: Int -> TransitionMap
+decrementer_begin n = rewire initial_segment key value
+    where
+        key = (Dash,rewireState)
+        value = (Dash,JumpRight,HeadState "check_zero")
+        rewireState = HeadState rewireStateName
+        rewireStateName = "s" ++ (show n) ++ "a"
+        initial_segment = stitchList $ zip3 tMaps prefixes hStates
+        tMaps = initialBlocks ++ [incrementer_transitional_block]
+        prefixes = initialPrefixes ++ ["s" ++ (show n)]
+        initialBlocks = take (n-1) $ repeat incrementer_initial_block
+        initialPrefixes = take (n-1) (zipWith (++) s int_strs_start_1)
+        int_strs_start_1 = map show [1..]
+        hStates = initialStates ++ [Halt]
+        initialStates = take (n-1) $ zipWith zipper s [2..]
+        zipper str i = HeadState (str ++ (show i) ++ "a")
+        s = repeat "s"
+
+decrementer_end :: TransitionMap
+decrementer_end = Map.fromList[
+        ((Dash,HeadState "check_zero"),(Dash,JumpRight,HeadState "erase_rightmost_dash_then_fill"))
+        ,((Blank,HeadState "check_zero"),(Blank,JumpLeft,HeadState "zero_left_loop"))
+        ,((Dash,HeadState "zero_left_loop"),(Dash,JumpLeft,HeadState "zero_left_loop"))
+        ,((Blank,HeadState "zero_left_loop"),(Blank,JumpLeft,HeadState "zero_second_to_last"))
+        ,((Dash,HeadState "zero_second_to_last"),(Dash,JumpLeft, HeadState "zero_left_loop"))
+        ,((Blank,HeadState "zero_second_to_last"),(Blank,JumpRight,HeadState "zero_last"))
+        ,((Dash,HeadState "zero_last"),(Dash,Stay,HeadState "error"))
+        ,((Blank,HeadState "zero_last"),(Blank,JumpRight,HeadState "zero_decrementer_end"))
+        ,((Dash,HeadState "erase_rightmost_dash_then_fill"),(Dash,JumpRight,HeadState "erase_rightmost_dash_then_fill"))
+        ,((Blank,HeadState "erase_rightmost_dash_then_fill"),(Blank,JumpLeft,HeadState "erase_it"))
+        ,((Dash,HeadState "erase_it"),(Blank,Stay,HeadState "erase_it"))
+        ,((Blank,HeadState "erase_it"),(Blank,JumpRight,HeadState "fill_next"))
+        ,((Dash,HeadState "fill_next"),(Dash,JumpRight,HeadState "are_there_dashes"))
+        ,((Blank,HeadState "fill_next"),(Dash,Stay,HeadState "fill_next"))
+        ,((Dash,HeadState "are_there_dashes"),(Dash,JumpRight, HeadState "erase_rightmost_dash_then_fill"))
+        ,((Blank,HeadState "are_there_dashes"),(Blank,JumpLeft,HeadState "non_zero_left_loop"))
+        ,((Dash,HeadState "non_zero_left_loop"),(Dash,JumpLeft,HeadState "non_zero_left_loop"))
+        ,((Blank,HeadState "non_zero_left_loop"),(Blank,JumpLeft,HeadState "non_zero_second_to_last"))
+        ,((Dash,HeadState "non_zero_second_to_last"),(Dash,JumpLeft, HeadState "non_zero_left_loop"))
+        ,((Blank,HeadState "non_zero_second_to_last"),(Blank,JumpRight,HeadState "non_zero_last"))
+        ,((Dash,HeadState "non_zero_last"),(Dash,Stay,HeadState "error"))
+        ,((Blank,HeadState "non_zero_last"),(Blank,JumpRight,HeadState "non_zero_decrementer_end"))
+    ]
+
+make_decrementer :: Int -> TransitionMap
+make_decrementer n = Map.union (decrementer_begin n) decrementer_end

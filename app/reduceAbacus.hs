@@ -35,8 +35,4 @@ main = do
     let
         tokens = alexScanTokens abacusInput
         amap = parseAbacus tokens
-        incrementer_transitional_block_renamed = prependToStateNames "s2" incrementer_transitional_block
-        incrementer_begin = stitch incrementer_initial_block incrementer_transitional_block_renamed (HeadState "s2a")
-        incrementer = stitch incrementer_begin incrementer_end (HeadState "lower_left_of_square")
-        other_incrementer = make_incrementer 4
-    printMap other_incrementer
+    printMap $ make_decrementer 5
