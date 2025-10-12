@@ -27,7 +27,6 @@ opts = Opt.info (options <**> Opt.helper)
    <> Opt.progDesc "Reduce an abacus machine to a Turing machine"
    <> Opt.header "abacusReduce - abacus machine reducer" )
 
-
 main :: IO ()
 main = do
     Options { optAbacusMapFile = abacusMapFile } <- Opt.execParser opts    
@@ -35,4 +34,5 @@ main = do
     let
         tokens = alexScanTokens abacusInput
         amap = parseAbacus tokens
-    printMap $ make_decrementer 5
+        tmap = processAbacusMap amap
+    printMap tmap

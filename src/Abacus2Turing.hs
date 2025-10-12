@@ -1,8 +1,12 @@
 module Abacus2Turing where
 
+import AbacusMachine.Types
 import TuringMachine.Types
 import qualified Data.Map as Map
 import Data.Map (Map)
+import Data.List (sort)
+
+import qualified Data.Set as Set
 
 printMap :: TransitionMap -> IO ()
 printMap tMap = printList (Map.toList tMap) where
@@ -77,9 +81,16 @@ stitchList ((tMap,prefix,hState):l) = stitch leftMap rightMap hState
         leftMap = prependToStateNames prefix tMap
         rightMap = stitchList l 
 
+entry_point :: TransitionMap
+entry_point = Map.fromList [
+        ((Dash,HeadState "start"),(Dash,Stay,HeadState "s1a"))
+        ,((Blank,HeadState "start"),(Blank,Stay,HeadState "s1a"))
+    ]
+
 make_incrementer :: Int -> TransitionMap
-make_incrementer n = stitchList $ zip3 tMaps prefixes hStates
+make_incrementer n = Map.union entry_point the_rest
     where
+        the_rest = stitchList $ zip3 tMaps prefixes hStates
         tMaps = initialBlocks ++ [incrementer_transitional_block,incrementer_end]
         initialBlocks = take (n-1) $ repeat incrementer_initial_block
         prefixes = initialPrefixes ++ ["s" ++ (show n),""]
@@ -94,8 +105,9 @@ rewire :: TransitionMap -> (TapeSymbol,HeadState) -> (TapeSymbol, HeadMove, Head
 rewire tMap key value = Map.insert key value tMap
 
 decrementer_begin :: Int -> TransitionMap
-decrementer_begin n = rewire initial_segment key value
+decrementer_begin n = Map.union entry_point the_rest
     where
+        the_rest = rewire initial_segment key value
         key = (Dash,rewireState)
         value = (Dash,JumpRight,HeadState "check_zero")
         rewireState = HeadState rewireStateName
@@ -139,3 +151,47 @@ decrementer_end = Map.fromList[
 
 make_decrementer :: Int -> TransitionMap
 make_decrementer n = Map.union (decrementer_begin n) decrementer_end
+
+registersUsed :: AbacusMap -> [Register]
+registersUsed aMap = Set.toList $ Set.fromList registers
+    where
+        registers = map getRegister $ Map.toList aMap
+        getRegister (_,(Increment r _)) = r
+        getRegister (_,(Decrement r _ _)) = r
+
+--This will make register mappers
+--A register mapper will map a register name to an integer
+makeRegisterMapper :: [String] -> (String -> Int)
+makeRegisterMapper strings = f
+    where
+        f s = Map.findWithDefault 0 s rankMap
+        rankMap = Map.fromList $ zip (sort strings) [1..]
+
+--Note that we need to feed in a register mapper of type (String -> Int)
+processAbacusPair :: (String -> Int) -> (String,AbacusRule) -> TransitionMap
+processAbacusPair regmap (abacusStateName,Increment register nextState) = rewiredIncrementer
+    where
+        rewiredIncrementer = rewire renamedIncrementer (Dash, HeadState (prefix ++ "last")) (Blank,JumpRight, nextTuringState)
+        prefix = "SUB_" ++ abacusStateName ++ "___"
+        n = regmap register
+        nextTuringState = if nextState == "Halt" then Halt else HeadState ("SUB_" ++ nextState ++ "___start")
+        renamedIncrementer = prependToStateNames prefix tMapRaw
+        tMapRaw = make_incrementer n
+processAbacusPair regmap (abacusStateName, Decrement register nextState nextStateIfEmpty) = twiceRewiredDecrementer
+    where
+        twiceRewiredDecrementer = rewire rewiredDecrementer (Blank,HeadState (prefix ++ "non_zero_last")) (Blank,JumpRight,nextTuringState)
+        prefix = "SUB_" ++ abacusStateName ++ "___"
+        n = regmap register
+        nextTuringState = if nextState == "Halt" then Halt else HeadState ("SUB_" ++ nextState ++ "___start")
+        rewiredDecrementer = rewire renamedDecrementer (Blank,HeadState (prefix ++ "zero_last")) (Blank,JumpRight,nextTuringStateIfEmpty)
+        nextTuringStateIfEmpty = if nextStateIfEmpty == "Halt" then Halt else HeadState ("SUB_" ++ nextStateIfEmpty ++ "___start")
+        renamedDecrementer = prependToStateNames prefix tMapRaw
+        tMapRaw = make_decrementer n
+
+processAbacusMap_help :: AbacusMap -> [TransitionMap]
+processAbacusMap_help amap = map (processAbacusPair regmap) $ Map.toList amap
+    where
+        regmap = makeRegisterMapper $ registersUsed amap
+
+processAbacusMap :: AbacusMap -> TransitionMap
+processAbacusMap = Map.unions . processAbacusMap_help
