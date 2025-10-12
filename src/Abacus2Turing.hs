@@ -67,7 +67,7 @@ incrementer_end = Map.fromList [
         ,((Dash,HeadState "second_to_last"),(Dash,JumpLeft,HeadState "left_loop"))
         ,((Blank,HeadState "second_to_last"),(Blank,JumpRight,HeadState "last"))
         ,((Dash,HeadState "last"),(Dash,Stay,HeadState "error"))
-        ,((Blank,HeadState "last"),(Blank,JumpRight,Halt))
+        ,((Blank,HeadState "last"),(Blank,JumpRight,HeadState "incrementer_end"))
     ]
 
 --This is a helper function for stitching together lists
@@ -171,7 +171,7 @@ makeRegisterMapper strings = f
 processAbacusPair :: (String -> Int) -> (String,AbacusRule) -> TransitionMap
 processAbacusPair regmap (abacusStateName,Increment register nextState) = rewiredIncrementer
     where
-        rewiredIncrementer = rewire renamedIncrementer (Dash, HeadState (prefix ++ "last")) (Blank,JumpRight, nextTuringState)
+        rewiredIncrementer = rewire renamedIncrementer (Blank, HeadState (prefix ++ "last")) (Blank,JumpRight, nextTuringState)
         prefix = "SUB_" ++ abacusStateName ++ "___"
         n = regmap register
         nextTuringState = if nextState == "Halt" then Halt else HeadState ("SUB_" ++ nextState ++ "___start")
