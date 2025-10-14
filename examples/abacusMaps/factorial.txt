@@ -1,0 +1,25 @@
+#loop:
+#multiply input and output, put the result in n
+#empty output
+#move contents of n to output
+#decrement input - it it's empty, halt
+
+start: Increment output multiply
+
+multiply: Decrement input copy copy_back
+copy: Increment m1copy decm2
+decm2: Decrement output incn decp
+incn: Increment n incp
+incp: Increment p decm2
+decp: Decrement p incm2 multiply
+incm2: Increment output decp
+copy_back: Decrement m1copy incm1 empty
+incm1: Increment input copy_back
+
+empty: Decrement output empty move
+move: Decrement n move2 next
+move2: Increment output move
+#For next: we need to halt when input is 1
+next: Decrement input next_help1 Halt
+next_help1: Decrement input next_help2 Halt
+next_help2: Increment input multiply
