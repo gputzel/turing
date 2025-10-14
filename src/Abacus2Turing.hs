@@ -4,7 +4,8 @@ import AbacusMachine.Types
 import TuringMachine.Types
 import qualified Data.Map as Map
 import Data.Map (Map)
-import Data.List (sort)
+import Data.List (sort,sortBy,isPrefixOf)
+import Data.Ord (comparing)
 
 import qualified Data.Set as Set
 
@@ -159,14 +160,32 @@ registersUsed aMap = Set.toList $ Set.fromList registers
         getRegister (_,(Increment r _)) = r
         getRegister (_,(Decrement r _ _)) = r
 
+data RegisterCategory = InputRegister | OutputRegister | OtherRegister
+    deriving (Eq, Ord, Show)
+
+categorizeRegister :: String -> RegisterCategory
+categorizeRegister s
+    | "input" `isPrefixOf` s  = InputRegister
+    | "output" `isPrefixOf` s = OutputRegister
+    | otherwise               = OtherRegister
+
+--customized sort, which ensures that input registers are first,
+--followed by output registers, followed by the rest
+customSort :: [String] -> [String]
+customSort = sortBy compareStrings
+    where
+        compareStrings s1 s2 =
+            case comparing categorizeRegister s1 s2 of
+                EQ -> compare s1 s2
+                other -> other
+
 --This will make register mappers
 --A register mapper will map a register name to an integer
 makeRegisterMapper :: [String] -> (String -> Int)
 makeRegisterMapper strings = f
     where
         f s = Map.findWithDefault 0 s rankMap
-        rankMap = Map.fromList $ zip (sort strings) [1..]
-
+        rankMap = Map.fromList $ zip (customSort strings) [1..]
 
 --The point of this is to give an entry point state
 --into the TransitionMap that has the same name as the Abacus state
