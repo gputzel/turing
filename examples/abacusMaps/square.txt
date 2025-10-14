@@ -9,9 +9,9 @@
 #   value in "p" is zero
 
 #Empty the input register into two other registers
-dec_input: Decrement input inc_a decm1
+start: Decrement input inc_a decm1
 inc_a: Increment a inc_b
-inc_b: Increment b dec_input
+inc_b: Increment b start
 
 #code for multiplying. I did m1 -> a and m2 -> b and n -> output
 decm1: Decrement a decm2 Halt
