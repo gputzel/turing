@@ -167,9 +167,21 @@ makeRegisterMapper strings = f
         f s = Map.findWithDefault 0 s rankMap
         rankMap = Map.fromList $ zip (sort strings) [1..]
 
+
+--The point of this is to give an entry point state
+--into the TransitionMap that has the same name as the Abacus state
+--For example, if the intended initial abacus state is named "start" then
+--we can run the reduced (Turing) machine using "start" insted of
+-- SUB_start___start
+outside_entry_point :: String -> TransitionMap
+outside_entry_point stateName = Map.fromList [
+        ((Dash,HeadState stateName),(Dash,Stay,HeadState internalName))
+        ,((Blank,HeadState stateName),(Blank,Stay,HeadState internalName))
+    ] where internalName = "SUB_" ++ stateName ++ "___start"
+
 --Note that we need to feed in a register mapper of type (String -> Int)
 processAbacusPair :: (String -> Int) -> (String,AbacusRule) -> TransitionMap
-processAbacusPair regmap (abacusStateName,Increment register nextState) = rewiredIncrementer
+processAbacusPair regmap (abacusStateName,Increment register nextState) = Map.union (outside_entry_point abacusStateName) rewiredIncrementer
     where
         rewiredIncrementer = rewire renamedIncrementer (Blank, HeadState (prefix ++ "last")) (Blank,JumpRight, nextTuringState)
         prefix = "SUB_" ++ abacusStateName ++ "___"
@@ -177,7 +189,7 @@ processAbacusPair regmap (abacusStateName,Increment register nextState) = rewire
         nextTuringState = if nextState == "Halt" then Halt else HeadState ("SUB_" ++ nextState ++ "___start")
         renamedIncrementer = prependToStateNames prefix tMapRaw
         tMapRaw = make_incrementer n
-processAbacusPair regmap (abacusStateName, Decrement register nextState nextStateIfEmpty) = twiceRewiredDecrementer
+processAbacusPair regmap (abacusStateName, Decrement register nextState nextStateIfEmpty) = Map.union (outside_entry_point abacusStateName) twiceRewiredDecrementer
     where
         twiceRewiredDecrementer = rewire rewiredDecrementer (Blank,HeadState (prefix ++ "non_zero_last")) (Blank,JumpRight,nextTuringState)
         prefix = "SUB_" ++ abacusStateName ++ "___"
