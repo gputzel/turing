@@ -1,0 +1,22 @@
+#try with --memoryState <(echo -e "input:5\noutput:0\na:0\nb:0\np:0")
+
+#Take the square of the value in register "input"
+#and put it in "output"
+#Assumptions:
+#   value in "output" is zero
+#   value in "a" is zero
+#   value in "b" is zero
+#   value in "p" is zero
+
+#Empty the input register into two other registers
+dec_input: Decrement input inc_a decm1
+inc_a: Increment a inc_b
+inc_b: Increment b dec_input
+
+#code for multiplying. I did m1 -> a and m2 -> b and n -> output
+decm1: Decrement a decm2 Halt
+decm2: Decrement b incn decp
+incn: Increment output incp
+incp: Increment p decm2
+decp: Decrement p incm2 decm1
+incm2: Increment b decp
