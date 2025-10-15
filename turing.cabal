@@ -63,6 +63,11 @@ executable turing
 
     -- Modules included in this executable, other than Main.
     other-modules: TuringMachine
+        ,Lexer
+        ,Parser
+        ,TuringMachine.Display
+        ,TuringMachine.Parse
+        ,TuringMachine.Types
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
@@ -91,6 +96,11 @@ executable abacus
 
     -- Modules included in this executable, other than Main.
     other-modules: AbacusMachine
+        ,AbacusLexer
+        ,AbacusMachine.Display
+        ,AbacusMachine.ParseMemory
+        ,AbacusMachine.Types
+        ,AbacusParser
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
@@ -119,6 +129,12 @@ executable reduceAbacus
 
     -- Modules included in this executable, other than Main.
     other-modules: AbacusMachine
+        ,Abacus2Turing
+        ,AbacusLexer
+        ,AbacusMachine.Display
+        ,AbacusMachine.Types
+        ,AbacusParser
+        ,TuringMachine.Types
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
