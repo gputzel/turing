@@ -17,3 +17,13 @@ Try one of these
     cabal run reduceAbacus -- --abacusMap examples/abacusMaps/emptyRegister.txt > test_empty.transitionrule
     cabal run turing -- --tapeState <(echo -e ".\n-\n----") --transitionRules test_empty.transitionrule --initialState SUB_empty___start --displayMode spacebar
 
+### To do
+
+- Address all warnings during build process
+- Use MegaParsec instead of Happy/Alex
+- Implement tests
+- Go into "standard position" at the end of an abacus computation (translated into Turing steps). That is, the Turing head should be at the beginning of the first output register, and there should be nothing else.
+- Translate arbitrary recursive functions into abacus code
+- Compile some high-level language into abacus code?
+- Search for optimizations of Turing machines
+- In the abacus to Turing reduction, make the composition process more Monad-like - possibly use a Monad?
