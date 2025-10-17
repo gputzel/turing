@@ -27,3 +27,4 @@ Try one of these
 - Compile some high-level language into abacus code?
 - Search for optimizations of Turing machines
 - In the abacus to Turing reduction, make the composition process more Monad-like - possibly use a Monad?
+- Choose a new format for the Turing tape state, for example a single line `...3-...>--..5-` where `>` points to the location of the head.
