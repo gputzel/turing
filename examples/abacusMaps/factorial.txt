@@ -1,3 +1,4 @@
+#cabal run abacus -- --memoryState <(echo -e "input:3\noutput:0\nm1copy:0\np:0\nn:0") --abacusMap examples/abacusMaps/factorial.txt --initialState "start" --displayMode slow
 #loop:
 #multiply input and output, put the result in n
 #empty output
