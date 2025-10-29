@@ -1,0 +1,11 @@
+#Take the input register, and copy it to the output register (assumed to be initialized to 0).
+#Makes use of an additional counter register, assumed to be initialized to 0
+
+#cabal run abacus -- --memoryState <(echo -e "input:5\noutput:0\ncounter:0") --abacusMap examples/abacusMaps/copy.txt --initialState "start" --displayMode spacebar
+
+start: Decrement input inc_out reload
+inc_out: Increment output inc_counter
+inc_counter: Increment counter start
+
+reload: Decrement counter inc_input Halt
+inc_input: Increment input reload
