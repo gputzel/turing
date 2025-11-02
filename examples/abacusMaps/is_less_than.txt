@@ -1,0 +1,9 @@
+#Compare input1 and input2
+#If input1 < input2, then output (initialized to 0) should be 1
+#Otherwise output should be 0
+
+start: Decrement input1 dec2_i1_nonzero dec2_i1_zero
+dec2_i1_nonzero: Decrement input2 start Halt
+dec2_i1_zero: Decrement input2 return1 Halt
+
+return1: Increment output Halt
