@@ -1,0 +1,17 @@
+#Compare input1 and input2
+#If input1 < input2, then output (initialized to 0) should be 1
+#Otherwise output should be 0
+#Additional registers (initialized): copy1, copy2
+
+start: Decrement input1 pre_dec2_i1_nonzero dec2_i1_zero
+pre_dec2_i1_nonzero: Increment copy1 dec2_i1_nonzero
+dec2_i1_nonzero: Decrement input2 pre_start restore
+pre_start: Increment copy2 start
+dec2_i1_zero: Decrement input2 pre_return1 restore
+pre_return1: Increment copy2 return1
+return1: Increment output restore
+
+restore: Decrement copy1 inc1 restore2
+inc1: Increment input1 restore
+restore2: Decrement copy2 inc2 Halt
+inc2: Increment input2 restore2
