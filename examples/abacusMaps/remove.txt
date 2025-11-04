@@ -1,0 +1,4 @@
+#Remove the value of input2 from input1
+start: Decrement input2 dec1 Halt
+dec1: Decrement input1 start undo_dec2
+undo_dec2: Increment input2 Halt
