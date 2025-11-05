@@ -1,0 +1,22 @@
+start: Decrement input2 pre_dec1 inc_output1
+pre_dec1: Increment copy2 dec1
+dec1: Decrement input1 pre_start input1_was_zero
+inc_output1: Increment output1 restore_input2
+restore_input2: Decrement copy2 inc2 start
+inc2: Increment input2 restore_input2
+pre_start: Increment copy1 start
+
+#If we get here, we over-decremented input2 by 1
+#and over-incremented copy2 by 1
+#undo that before continuing
+input1_was_zero: Increment input2 dec_copy2
+dec_copy2: Decrement copy2 unroll error_should_not_be_zero
+
+#The contents of copy2 need to be dumped back into input2 but also
+#into output2 (as a remainder)
+unroll: Decrement copy2 inc_input2_unroll restore_input1
+inc_input2_unroll: Increment input2 inc_output2_unroll
+inc_output2_unroll: Increment output2 unroll
+
+restore_input1: Decrement copy1 inc1_restore Halt
+inc1_restore: Increment input1 restore_input1
